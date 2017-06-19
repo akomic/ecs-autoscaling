@@ -1,0 +1,24 @@
+[{
+  "name": "lifecycle",
+  "image": "akomic/ecs-termination-lifecycle:v5",
+  "hostname": "lifecycle",
+  "memory": 256,
+  "environment": [
+    {
+      "name": "ASG_NAME",
+      "value": "${ASG_NAME}"
+    },
+    {
+      "name": "CLUSTER_ARN",
+      "value": "${CLUSTER_ARN}"
+    },
+    {
+      "name": "TERMINATION_HOOK_NAME",
+      "value": "${TERMINATION_HOOK_NAME}"
+    }
+  ],
+  "volumesFrom": [],
+  "links": [],
+  "mountPoints": [],
+  "essential": true
+}]

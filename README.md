@@ -56,6 +56,8 @@ instance termination.
 ```
 - CloudWatch Event Rule
 
+Terraform template as an example is in terraform/
+
 ## Creating docker image for ECS Task
 - Edit
   - Makefile
@@ -65,3 +67,4 @@ instance termination.
 ```
 $ make all
 ```
+
