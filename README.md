@@ -23,3 +23,45 @@ seconds if number of running and pending containers on the instance reached
 0 and than sends CONTINUE signal to AutoScaling so it can proceed with the
 instance termination.
 
+## What we need
+- ECS Task definition
+- Role
+```
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "ecs-tasks.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+- IAM policy attached to ECS Task def to allow the following:
+```
+      "ecs:RunTask",
+      "ecs:DescribeClusters",
+      "ecs:DescribeContainerInstances",
+      "ecs:DescribeTaskDefinition",
+      "ecs:ListContainerInstances",
+      "ecs:UpdateContainerInstancesState"
+      "autoscaling:CompleteLifecycleAction",
+      "autoscaling:DescribeScalingActivities"
+```
+- CloudWatch Event Rule
+
+## Creating docker image for ECS Task
+- Edit
+  - Makefile
+  - .release
+
+- Run
+```
+$ make all
+```
