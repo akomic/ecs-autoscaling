@@ -2,7 +2,7 @@
   "name": "lifecycle",
   "image": "akomic/ecs-termination-lifecycle:v5",
   "hostname": "lifecycle",
-  "memory": 256,
+  "memory": 128,
   "environment": [
     {
       "name": "ASG_NAME",

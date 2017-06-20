@@ -1,0 +1,11 @@
+[
+    {
+        "RoleArn": "${roleARN}",
+        "EcsParameters": {
+            "TaskDefinitionArn": "${taskDefinitionARN}",
+            "TaskCount": 1
+        },
+        "Id": "${clusterName}",
+        "Arn": "${clusterARN}"
+    }
+]

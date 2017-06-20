@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python -u
 
 import re
 import os
 import time
 import boto3
+import requests
 
 
 class ASGHandler():
@@ -14,6 +15,9 @@ class ASGHandler():
 
         self.toTerminate = {}
         self.notified = {}
+
+        r = requests.get('http://169.254.169.254/latest/meta-data/instance-id')
+        self.currentInstanceId = r.text
 
         self.autoscaling = boto3.client('autoscaling',
                                         region_name='us-east-1')
@@ -74,6 +78,20 @@ class ASGHandler():
 
         return len(self.toTerminate)
 
+    def __is_drained(self, ec2InstanceId, instanceData):
+        if instanceData['pendingTasksCount'] > 0:
+            return False
+
+        if ec2InstanceId == self.currentInstanceId:
+            runningTasksCount = 1
+        else:
+            runningTasksCount = 0
+
+        if instanceData['runningTasksCount'] > runningTasksCount or \
+           len(self.toTerminate) > 1:
+            return False
+        return True
+
     def __handle_termination(self):
         self.__update_instance_info()
         waiting = 0
@@ -85,21 +103,30 @@ class ASGHandler():
             if ref['status'] != 'DRAINING':
                 continue
 
-            if ref['pendingTasksCount'] == 0 and ref['runningTasksCount'] == 0:
+            if self.__is_drained(ec2InstanceId, ref):
                 print "Sending CONTINUE: {0} {1} {2}".format(
                     self.hookName,
                     self.asgName,
                     ec2InstanceId
                 )
-                self.autoscaling.complete_lifecycle_action(
-                    LifecycleHookName=self.hookName,
-                    AutoScalingGroupName=self.asgName,
-                    LifecycleActionResult='CONTINUE',
-                    InstanceId=ec2InstanceId
-                )
-                self.notified[ec2InstanceId] = True
+                try:
+                    self.autoscaling.complete_lifecycle_action(
+                        LifecycleHookName=self.hookName,
+                        AutoScalingGroupName=self.asgName,
+                        LifecycleActionResult='CONTINUE',
+                        InstanceId=ec2InstanceId
+                    )
+                    self.notified[ec2InstanceId] = True
+                except Exception as e:
+                    print "WARNING: Unable to send CONTINUE to {0} {1}".format(
+                        ec2InstanceId,
+                        str(e)
+                    )
             else:
                 waiting += 1
+
+        for ec2InstanceId in self.notified:
+            self.toTerminate.pop(ec2InstanceId)
 
         return waiting
 
